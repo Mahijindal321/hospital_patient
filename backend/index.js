@@ -114,18 +114,27 @@ app.get("/patients", async (req, res) => {
 });
 
 
-// GET PATIENT BY ID
-app.get("/patients/:id", async (req, res) => {
-  try {
-    const patient = await Patient.findById(req.params.id);
 
-    if (!patient) {
-      return res.status(404).json({ message: "Patient not found" });
+// SEARCH PATIENT
+app.get("/patients/search", async (req, res) => {
+  try {
+    const { name, disease } = req.query;
+
+    const query = {};
+
+    if (name) {
+      query.fullName = { $regex: name, $options: "i" };
     }
 
-    res.status(200).json(patient);
+    if (disease) {
+      query.disease = { $regex: disease, $options: "i" };
+    }
+
+    const patients = await Patient.find(query);
+
+    res.status(200).json(patients);
   } catch (error) {
-    res.status(400).json({ message: "Invalid ID" });
+    res.status(500).json({ message: error.message });
   }
 });
 
@@ -166,26 +175,20 @@ app.delete("/patients/:id", async (req, res) => {
 });
 
 
-// SEARCH PATIENT
-app.get("/patients/search", async (req, res) => {
+
+// GET PATIENT BY ID
+
+app.get("/patients/:id", async (req, res) => {
   try {
-    const { name, disease } = req.query;
+    const patient = await Patient.findById(req.params.id);
 
-    const query = {};
-
-    if (name) {
-      query.fullName = { $regex: name, $options: "i" };
+    if (!patient) {
+      return res.status(404).json({ message: "Patient not found" });
     }
 
-    if (disease) {
-      query.disease = { $regex: disease, $options: "i" };
-    }
-
-    const patients = await Patient.find(query);
-
-    res.status(200).json(patients);
+    res.status(200).json(patient);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(400).json({ message: "Invalid ID" });
   }
 });
 
